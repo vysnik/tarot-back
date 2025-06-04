@@ -26,8 +26,8 @@ staticfiles/
 local_settings.py
 
 # Migrations (если не хочешь их отслеживать)
-# */migrations/
-# !*/migrations/__init__.py
+*/migrations/
+!*/migrations/__init__.py
 
 # System files
 .DS_Store
