@@ -10,8 +10,10 @@ from google.auth.transport import requests as g_requests
 from django.contrib.auth import get_user_model
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import generics, permissions
 from rest_framework_simplejwt.tokens import RefreshToken
+
+from .serializers import MeSerializer
 
 import logging
 logger = logging.getLogger(__name__)
@@ -41,7 +43,7 @@ class GoogleLoginView(APIView):
                 g_requests.Request(),
                 clock_skew_in_seconds=10,   # допускаем ±10 сек
             )
-
+            logger.debug("idinfo = %s", idinfo)
             # ❷ Проверяем aud вручную
             if idinfo["aud"] not in ALLOWED_GOOGLE_CLIENT_IDS:
                 return Response({"error": "Wrong audience"}, status=400)
@@ -107,3 +109,16 @@ class AppleLoginView(APIView):
 
         except Exception as e:
             return Response({"error": "Invalid Apple token", "details": str(e)}, status=400)
+
+
+class MeView(generics.RetrieveUpdateAPIView):
+    """
+    GET  /me/  →  данные аккаунта
+    PUT/PATCH /me/  →  обновить профиль
+    """
+    serializer_class    = MeSerializer
+    permission_classes  = [permissions.IsAuthenticated]
+
+    def get_object(self):
+        # всегда возвращаем текущего аутентифицированного юзера
+        return self.request.user
